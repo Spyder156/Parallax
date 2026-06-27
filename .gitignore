@@ -21,6 +21,10 @@ outputs/
 logs/
 wandb/
 *.ply
+data/
+
+# Large external papers (PDFs) — kept locally, not in the repo
+Relevant_Papers/
 
 # Editor / OS
 .vscode/

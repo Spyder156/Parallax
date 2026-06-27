@@ -14,6 +14,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "simple_knn.h"
+#include <float.h>  // FLT_MAX — not transitively included on modern CUDA/GCC (sm_120 build)
 #include <cub/cub.cuh>
 #include <cub/device/device_radix_sort.cuh>
 #include <vector>

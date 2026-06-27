@@ -17,9 +17,9 @@ reviews visualizations; their read is ground truth.
 
 **Goal:** clean repo, working N-dim feature rasterizer, curated converged scenes.
 
-- [ ] Conda env + Dockerfile pinned; build the `feature-3dgs` CUDA rasterizer
-      (`submodules/diff-gaussian-rasterization-feature`); confirm forward+backward on a
-      toy N-dim payload.
+- [ ] Dockerfile pinned (Blackwell/sm_120, cu128); build the `feature-3dgs` CUDA rasterizer
+      (`External/feature-3dgs/submodules/diff-gaussian-rasterization-feature`); confirm
+      forward+backward on a toy N-dim payload.
 - [ ] Pick geometry source (Open Q2): cleaner **2DGS/GOF** scenes or scanned meshes
       preferred over sloppy RGB-GS. Curate ~5–10 scenes.
 - [ ] Data loader exposing per scene: Gaussian cloud (centers, scale, opacity, rotation,

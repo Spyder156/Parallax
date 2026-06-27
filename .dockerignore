@@ -1,0 +1,17 @@
+# Keep build context tiny: only External/feature-3dgs/submodules is needed for the rasterizer.
+.git
+**/__pycache__
+**/*.pyc
+
+# Large external papers — never part of the build context.
+Relevant_Papers
+
+# Exclude all of feature-3dgs EXCEPT the CUDA submodules.
+External/feature-3dgs/*
+!External/feature-3dgs/submodules
+
+# Our own non-build dirs
+scripts
+outputs
+data
+*.rrd

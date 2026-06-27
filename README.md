@@ -81,15 +81,18 @@ Early design / pre-implementation. See:
 ## Repository layout
 
 ```
-External/
+Parallax/                     # repo root
 ├── README.md                 # this file
 ├── INITIAL_DISCUSSION.md     # design rationale + cruxes + decisions + literature
 ├── ROADMAP.md                # staged implementation plan
-└── feature-3dgs/             # base repo: CUDA rasterizer for N-dim features + depth
-    └── submodules/diff-gaussian-rasterization-feature/
+├── docker/                   # Dockerfile (Blackwell/sm_120, cu128)
+├── scripts/                  # test + setup scripts
+└── External/                 # vendored external repos only
+    └── feature-3dgs/         # base repo: CUDA rasterizer for N-dim features + depth
+        └── submodules/diff-gaussian-rasterization-feature/
 ```
 
-We build on **[Feature-3DGS](feature-3dgs/)** (Zhou et al., CVPR 2024) for the
+We build on **[Feature-3DGS](External/feature-3dgs/)** (Zhou et al., CVPR 2024) for the
 N-dim feature + depth rasterizer.
 
 ---

@@ -572,7 +572,10 @@ renderCUDA(
 
 				const float dL_dfeaturechannel = dL_dfeaturepixel[ch];
 				/**************************************************************************************************/
-				// dL_dalpha += (f - accum_semantic_feature_rec[ch]) * dL_dfeaturechannel; // Only works for semnatic-meaning feature. Disable this line for general features.
+				// PARALLAX: re-enabled. Couples feature loss -> dL_dalpha -> geometry (means/scale/opacity).
+				// Feature-3dgs disabled this because they distill features onto FIXED geometry; we optimize
+				// geometry FROM feature loss, so this term is essential. Standard alpha-blend backward (cf. L554).
+				dL_dalpha += (f - accum_semantic_feature_rec[ch]) * dL_dfeaturechannel;
 				/**************************************************************************************************/
 				
 				// Update the gradients w.r.t. semnatic feature of the Gaussian. 
