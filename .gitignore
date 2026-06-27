@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+*.so
+
+# Envs
+.venv/
+venv/
+.env
+
+# Data / checkpoints / outputs (heavy)
+*.ckpt
+*.pth
+*.pt
+output/
+outputs/
+logs/
+wandb/
+*.ply
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Rerun
+*.rrd
