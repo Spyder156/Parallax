@@ -563,9 +563,12 @@ renderCUDA(
 			dL_dalpha += (c_d - accum_depth_rec) * dL_depth;
 
 
-			for (int ch = 0; ch < NUM_SEMANTIC_CHANNELS; ch++) 
+			for (int ch = 0; ch < NUM_SEMANTIC_CHANNELS; ch++)
 			{
-				const float f = collected_semantic_feature[ch * BLOCK_SIZE + j];
+				// PARALLAX: read the real per-Gaussian feature directly by global id.
+				// The original `collected_semantic_feature` scratch buffer is never loaded
+				// in the backward, so it was always 0 -> killed the dL_dalpha term below.
+				const float f = semantic_feature[global_id * NUM_SEMANTIC_CHANNELS + ch];
 				// Update last semantic feature (to be used in the next iteration)
 				accum_semantic_feature_rec[ch] = last_alpha * last_semantic_feature[ch] + (1.f - last_alpha) * accum_semantic_feature_rec[ch];
 				last_semantic_feature[ch] = f;
