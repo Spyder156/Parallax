@@ -21,7 +21,7 @@ DEVICE = "cuda"
 F = 64
 PLY = "/workspace/data/ckpt/bicycle_lichtfeld/splat_30000.ply"
 SPARSE = "/workspace/data/mipnerf360/bicycle/sparse_4/0"
-OUT = "/workspace/outputs"
+OUT = "/workspace/outputs/bicycle/sanity"
 C0 = 0.28209479177387814  # SH band-0 constant
 
 

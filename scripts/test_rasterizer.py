@@ -140,10 +140,10 @@ def main():
     print(f"[grad] means3D={g.norm().item():.4e}  means2D/screen={sg}  features={fg}")
 
     # ALWAYS save visualizations for the user to inspect, regardless of pass/fail.
-    save_pca_rgb(feat_map, "/workspace/outputs/stage0_feature_map_pca.png")
-    save_gray(((feat_map ** 2).mean(0)), "/workspace/outputs/stage0_perpixel_loss.png")
+    save_pca_rgb(feat_map, "/workspace/outputs/stage0_rasterizer/feature_map_pca.png")
+    save_gray(((feat_map ** 2).mean(0)), "/workspace/outputs/stage0_rasterizer/perpixel_loss.png")
     if g.norm() > 0:
-        save_points_grad(means.detach(), g, "/workspace/outputs/stage0_means_grad.png")
+        save_points_grad(means.detach(), g, "/workspace/outputs/stage0_rasterizer/means_grad.png")
 
     if feat_map.abs().sum() == 0:
         print("FAIL — nothing rendered (empty image). See saved viz.")

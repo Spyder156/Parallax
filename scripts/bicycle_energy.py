@@ -28,7 +28,7 @@ DEVICE = "cuda"
 F = 64
 PLY = "/workspace/data/ckpt/bicycle_lichtfeld/splat_30000.ply"
 SPARSE = "/workspace/data/mipnerf360/bicycle/sparse_4/0"
-OUT = "/workspace/outputs"
+OUT = "/workspace/outputs/bicycle"
 DOWNSCALE = 2
 K_CAMS = 8
 PATCH_K = 3000
@@ -206,9 +206,9 @@ def main():
     base[nn] = torch.tensor([1.0, 0.0, 0.0], device=DEVICE)
     hl = render_rgb(view_cams[0], means, scales, rots, opac, base)
     import cv2
-    cv2.imwrite(f"{OUT}/bike_patch_highlight.png",
+    cv2.imwrite(f"{OUT}/landscape_b/patch_highlight.png",
                 (hl.detach().clamp(0, 1).permute(1, 2, 0)[..., [2, 1, 0]].cpu().numpy() * 255).astype(np.uint8))
-    print(f"[viz] {OUT}/bike_patch_highlight.png")
+    print(f"[viz] {OUT}/landscape_b/patch_highlight.png")
 
     # GT feature maps
     gt = [render_feat(c, means, scales, rots, opac, feats).detach() for c in view_cams]
@@ -234,7 +234,7 @@ def main():
         alias = float(np.array(ls)[np.abs(deltas) > 0.6 * R].min()) / peak
         print(f"[{name:9s}] curvature={kappa:.4e}  argmin={amin:+.3f}  "
               f"flat(L@0.3R/peak)={near/peak:5.3f}  alias(min_far/peak)={alias:5.3f}")
-    save_curves(deltas, curves, f"{OUT}/bike_landscape_1d.png")
+    save_curves(deltas, curves, f"{OUT}/landscape_b/landscape_1d.png")
 
     # 2-D normal x in-plane_1
     G = 17
@@ -243,8 +243,8 @@ def main():
     for i, dny in enumerate(dd):
         for j, dnx in enumerate(dd):
             Z[i, j] = loss_at(float(dny) * normal + float(dnx) * t1)
-    save_2d(dd, Z, f"{OUT}/bike_landscape_2d.png")
-    np.savez(f"{OUT}/bike_curves.npz", deltas=deltas, R=R, radius=radius,
+    save_2d(dd, Z, f"{OUT}/landscape_b/landscape_2d.png")
+    np.savez(f"{OUT}/landscape_b/curves.npz", deltas=deltas, R=R, radius=radius,
              patch_normal=normal.cpu().numpy(), Z2d=Z, dd=dd, **curves)
     print("[done] STAGE 3: bicycle energy landscape complete.")
 

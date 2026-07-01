@@ -29,7 +29,7 @@ from diff_gaussian_rasterization import (
 
 DEVICE = "cuda"
 F = 64                # must match NUM_SEMANTIC_CHANNELS the image was compiled with
-OUT = "/workspace/outputs"
+OUT = "/workspace/outputs/energy_synthetic"
 W = H = 160
 N_VIEWS = 8
 CAM_RADIUS = 4.0
