@@ -26,6 +26,11 @@ data/
 # Large external papers (PDFs) — kept locally, not in the repo
 Relevant_Papers/
 
+# Cloned external tools / reference code (not vendored; rebuild via clone + memory recipe)
+External/LichtFeld-Studio/
+External/Concerto/
+External/sonata/
+
 # Editor / OS
 .vscode/
 .idea/
