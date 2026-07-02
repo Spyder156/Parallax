@@ -26,6 +26,9 @@ data/
 # Large external papers (PDFs) — kept locally, not in the repo
 Relevant_Papers/
 
+# Design docs kept local (README stays tracked)
+markdowns/
+
 # Cloned external tools / reference code (not vendored; rebuild via clone + memory recipe)
 External/LichtFeld-Studio/
 External/Concerto/
