@@ -22,8 +22,8 @@ import cv2
 from transformers import AutoModel
 
 from bike_common import (DEVICE, F, load_gaussians, robust_bbox, load_cameras, render_feat,
-                         render_rgb, project, orthonormal_tangents, select_flat_patch,
-                         cams_seeing, save_pca_rgb, curvature, save_curves, save_2d)
+                         render_rgb, orthonormal_tangents, select_flat_patch, cams_seeing,
+                         save_pca_rgb, bake, run_landscape)
 
 PLY = "/workspace/data/ckpt/bicycle_lichtfeld/splat_30000.ply"
 SPARSE = "/workspace/data/mipnerf360/bicycle/sparse_4/0"
@@ -61,24 +61,6 @@ def dino_maps(model, cams):
     return targets
 
 
-def bake(means, cams, targets):
-    """multiview-fuse A_target onto each Gaussian by sampling at its projection."""
-    acc = torch.zeros(means.shape[0], F, device=DEVICE)
-    cnt = torch.zeros(means.shape[0], 1, device=DEVICE)
-    for c, tgt in zip(cams, targets):
-        px, valid = project(means, c)
-        gx = px[:, 0] / c["W"] * 2 - 1
-        gy = px[:, 1] / c["H"] * 2 - 1
-        grid = torch.stack([gx, gy], 1)[None, :, None, :]              # (1,N,1,2)
-        samp = torch.nn.functional.grid_sample(tgt[None], grid, align_corners=False)
-        samp = samp[0, :, :, 0].T                                      # (N,F)
-        acc += samp * valid[:, None]
-        cnt += valid[:, None]
-    feats = acc / cnt.clamp(min=1)
-    print(f"[bake] {(cnt.squeeze() > 0).float().mean().item()*100:.1f}% of gaussians seen")
-    return feats[:, None, :]
-
-
 def main():
     os.makedirs(OUT, exist_ok=True)
     means, scales, rots, opac = load_gaussians(PLY)
@@ -103,32 +85,8 @@ def main():
                 (hl.detach().clamp(0, 1).permute(1, 2, 0)[..., [2, 1, 0]].cpu().numpy() * 255).astype(np.uint8))
     print(f"[viz] {OUT}/patch_highlight.png")
 
-    def loss_at(offset):
-        m = means.clone(); m[nn] = m[nn] + offset       # features FIXED (baked)
-        tot = 0.0
-        for c, g in zip(view_cams, targets):
-            tot = tot + ((render_feat(c, m, scales, rots, opac, baked) - g) ** 2).mean()
-        return (tot / len(view_cams)).item()
-
-    R = 2.5 * radius
-    deltas = np.linspace(-R, R, N_SWEEP)
-    curves = {}
-    for name, ax in {"normal": normal, "inplane_1": t1, "inplane_2": t2}.items():
-        ls = [loss_at(float(d) * ax) for d in deltas]
-        curves[name] = ls
-        kappa, amin = curvature(deltas, ls, R)
-        peak = max(ls) + 1e-12
-        bias = amin / R
-        alias = float(np.array(ls)[np.abs(deltas) > 0.6 * R].min()) / peak
-        print(f"[{name:9s}] curvature={kappa:.4e}  argmin={amin:+.3f} (bias {bias:+.2f}R)  "
-              f"alias={alias:5.3f}")
-    save_curves(deltas, curves, f"{OUT}/landscape_1d.png", "Bicycle (a): DINOv2-target landscape")
-
-    G = 17
-    dd = np.linspace(-R, R, G)
-    Z = np.array([[loss_at(float(dny) * normal + float(dnx) * t1) for dnx in dd] for dny in dd])
-    save_2d(dd, Z, f"{OUT}/landscape_2d.png", "Bicycle (a): DINOv2 landscape (+ = truth)")
-    np.savez(f"{OUT}/curves.npz", deltas=deltas, R=R, radius=radius, Z2d=Z, dd=dd, **curves)
+    run_landscape(means, scales, rots, opac, nn, normal, t1, t2, radius,
+                  view_cams, targets, baked, OUT, "Bicycle (a): DINOv2-target")
     print("[done] flavor (a): DINOv2-target energy landscape complete.")
 
 

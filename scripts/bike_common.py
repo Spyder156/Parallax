@@ -182,3 +182,45 @@ def save_2d(dd, Z, path, title):
     plt.colorbar(label="feature loss"); plt.plot(0, 0, "r+", ms=12)
     plt.xlabel("in-plane"); plt.ylabel("normal"); plt.title(title)
     plt.tight_layout(); plt.savefig(path, dpi=120); plt.close(); print(f"[viz] {path}")
+
+
+def bake(means, cams, targets, feat_dim=F):
+    """multiview-fuse target feature maps (F,H,W) onto each Gaussian via its projection."""
+    acc = torch.zeros(means.shape[0], feat_dim, device=DEVICE)
+    cnt = torch.zeros(means.shape[0], 1, device=DEVICE)
+    for c, tgt in zip(cams, targets):
+        px, valid = project(means, c)
+        gx = px[:, 0] / c["W"] * 2 - 1
+        gy = px[:, 1] / c["H"] * 2 - 1
+        grid = torch.stack([gx, gy], 1)[None, :, None, :]
+        samp = torch.nn.functional.grid_sample(tgt[None], grid, align_corners=False)[0, :, :, 0].T
+        acc += samp * valid[:, None]; cnt += valid[:, None]
+    print(f"[bake] {(cnt.squeeze() > 0).float().mean().item()*100:.1f}% of gaussians seen")
+    return (acc / cnt.clamp(min=1))[:, None, :]
+
+
+def run_landscape(means, scales, rots, opac, nn, normal, t1, t2, radius,
+                  view_cams, targets, baked, out, title, n_sweep=31):
+    """perturb the patch (features FIXED), sweep normal/in-plane vs targets, save viz."""
+    os.makedirs(out, exist_ok=True)
+
+    def loss_at(offset):
+        m = means.clone(); m[nn] = m[nn] + offset
+        tot = 0.0
+        for c, g in zip(view_cams, targets):
+            tot = tot + ((render_feat(c, m, scales, rots, opac, baked) - g) ** 2).mean()
+        return (tot / len(view_cams)).item()
+
+    R = 2.5 * radius
+    deltas = np.linspace(-R, R, n_sweep)
+    curves = {}
+    for name, ax in {"normal": normal, "inplane_1": t1, "inplane_2": t2}.items():
+        ls = [loss_at(float(d) * ax) for d in deltas]; curves[name] = ls
+        kappa, amin = curvature(deltas, ls, R); peak = max(ls) + 1e-12
+        alias = float(np.array(ls)[np.abs(deltas) > 0.6 * R].min()) / peak
+        print(f"[{name:9s}] curvature={kappa:.4e}  argmin={amin:+.3f} (bias {amin/R:+.2f}R)  alias={alias:5.3f}")
+    save_curves(deltas, curves, f"{out}/landscape_1d.png", title)
+    G = 17; dd = np.linspace(-R, R, G)
+    Z = np.array([[loss_at(float(dy) * normal + float(dx) * t1) for dx in dd] for dy in dd])
+    save_2d(dd, Z, f"{out}/landscape_2d.png", title + " (+ = truth)")
+    np.savez(f"{out}/curves.npz", deltas=deltas, R=R, radius=radius, Z2d=Z, dd=dd, **curves)
